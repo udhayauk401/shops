@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DressLux - Luxury Fashion</title>
+  <script>
+    // Check if user is logged in and redirect accordingly
+    function redirectUser() {
+      const currentUser = localStorage.getItem("currentUser");
+      if (currentUser) {
+        const user = JSON.parse(currentUser);
+        if (user.role === "admin") {
+          window.location.href = "pages/admin/admin-dashboard.html";
+        } else {
+          window.location.href = "pages/dashboard.html";
+        }
+      } else {
+        window.location.href = "pages/login.html";
+      }
+    }
+
+    // Redirect immediately on load
+    window.addEventListener("load", redirectUser);
+  </script>
+</head>
+<body>
+  <p style="text-align: center; padding: 2rem;">Redirecting to DressLux...</p>
+</body>
+</html>

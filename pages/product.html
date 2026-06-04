@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product - DressLux</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/navbar.css">
+  <link rel="stylesheet" href="../css/product.css">
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-content">
+      <a href="dashboard.html" class="navbar-logo">DressLux 👗</a>
+
+      <div class="hamburger" id="hamburger">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+
+      <ul class="navbar-menu" id="navbar-menu">
+        <li><a href="dashboard.html">Home</a></li>
+        <li><a href="my-orders.html">My Orders</a></li>
+        <li><a href="notifications.html">Notifications <span id="notification-count" class="notification-count hidden">0</span></a></li>
+      </ul>
+
+      <div class="navbar-icons">
+        <a href="cart.html" class="navbar-icon-link" id="cart-link">
+          🛒
+          <span id="cart-count" class="cart-count">0</span>
+        </a>
+        <a href="#" class="navbar-icon-link" onclick="logoutUser(); return false;">👤</a>
+        <button class="logout-btn" onclick="logoutUser()">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Product Detail -->
+  <div class="container">
+    <div class="product-detail-container">
+      <div class="product-detail-wrapper">
+        <!-- Product Gallery -->
+        <div class="product-gallery">
+          <div class="main-image" id="main-image">
+            <div class="skeleton" style="width: 100%; height: 500px;"></div>
+          </div>
+          <div class="thumbnail-gallery" id="thumbnail-gallery">
+            <!-- Thumbnails will be added here -->
+          </div>
+        </div>
+
+        <!-- Product Info -->
+        <div class="product-info-section">
+          <div class="product-header">
+            <h1 id="product-name">Product Name</h1>
+            <div class="product-price-section">
+              <span class="product-price-current" id="product-price">₹0.00</span>
+            </div>
+          </div>
+
+          <div id="product-description">
+            <!-- Description will be filled here -->
+          </div>
+
+          <div class="size-section">
+            <h3>Select Size</h3>
+            <div class="size-options" id="sizes-container">
+              <!-- Sizes will be rendered here -->
+            </div>
+          </div>
+
+          <div class="quantity-section">
+            <h3>Quantity</h3>
+            <div class="quantity-selector">
+              <button class="quantity-btn" onclick="updateQtyInput(-1)">−</button>
+              <input type="number" id="qty-input" class="quantity-input" value="1" min="1" readonly>
+              <button class="quantity-btn" onclick="updateQtyInput(1)">+</button>
+            </div>
+          </div>
+
+          <div class="product-actions">
+            <button class="add-to-cart-btn" id="add-to-cart-btn">Add to Cart</button>
+            <button class="wishlist-btn" onclick="toggleWishlist()">❤️</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Related Products -->
+      <section class="related-products-section" id="related-section" style="display: none;">
+        <h2>You Might Also Like</h2>
+        <div class="related-products-grid" id="related-products">
+          <!-- Related products will be rendered here -->
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/products.js"></script>
+  <script src="../js/cart.js"></script>
+  <script>
+    // Mobile menu toggle
+    const hamburger = document.getElementById("hamburger");
+    const menu = document.getElementById("navbar-menu");
+
+    hamburger.addEventListener("click", () => {
+      hamburger.classList.toggle("active");
+      menu.classList.toggle("active");
+    });
+
+    let currentQuantity = 1;
+
+    function updateQtyInput(change) {
+      const input = document.getElementById("qty-input");
+      let newVal = parseInt(input.value) + change;
+      if (newVal > 0) {
+        input.value = newVal;
+        currentQuantity = newVal;
+      }
+    }
+
+    function toggleWishlist() {
+      const btn = document.querySelector(".wishlist-btn");
+      btn.classList.toggle("added");
+      showToast(btn.classList.contains("added") ? "❤️ Added to wishlist" : "Removed from wishlist");
+    }
+
+    // Initialize page
+    document.addEventListener("DOMContentLoaded", initProductPage);
+  </script>
+</body>
+</html>

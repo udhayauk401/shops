@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shop - DressLux</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/navbar.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-content">
+      <a href="dashboard.html" class="navbar-logo">DressLux 👗</a>
+
+      <div class="hamburger" id="hamburger">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+
+      <ul class="navbar-menu" id="navbar-menu">
+        <li><a href="dashboard.html" class="active">Home</a></li>
+        <li><a href="my-orders.html">My Orders</a></li>
+        <li><a href="notifications.html">Notifications <span id="notification-count" class="notification-count hidden">0</span></a></li>
+      </ul>
+
+      <div class="navbar-icons">
+        <a href="cart.html" class="navbar-icon-link" id="cart-link">
+          🛒
+          <span id="cart-count" class="cart-count">0</span>
+        </a>
+        <a href="#" class="navbar-icon-link" onclick="logoutUser(); return false;">👤</a>
+        <button class="logout-btn" onclick="logoutUser()">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Hero Banner -->
+    <section class="hero">
+      <div class="container">
+        <h1>Explore Our Latest Collection</h1>
+        <p>Discover elegant, fashionable dresses for every occasion</p>
+        <button class="btn" onclick="document.getElementById('products-section').scrollIntoView({ behavior: 'smooth' })">Shop Now</button>
+      </div>
+    </section>
+
+    <!-- Filters Section -->
+    <section class="filters-section">
+      <div class="container">
+        <div class="search-bar">
+          <input type="text" id="search-input" placeholder="Search for dresses...">
+        </div>
+        <div class="category-filters">
+          <button class="category-btn active" onclick="filterByCategory('All')">All</button>
+          <button class="category-btn" onclick="filterByCategory('Casual')">Casual</button>
+          <button class="category-btn" onclick="filterByCategory('Formal')">Formal</button>
+          <button class="category-btn" onclick="filterByCategory('Party')">Party</button>
+          <button class="category-btn" onclick="filterByCategory('Traditional')">Traditional</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Products Section -->
+    <section class="products-section" id="products-section">
+      <div class="container">
+        <div class="products-grid" id="products-grid">
+          <!-- Products will be rendered here -->
+          <div class="skeleton" style="height: 350px;"></div>
+          <div class="skeleton" style="height: 350px;"></div>
+          <div class="skeleton" style="height: 350px;"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/products.js"></script>
+  <script src="../js/cart.js"></script>
+  <script>
+    // Mobile menu toggle
+    const hamburger = document.getElementById("hamburger");
+    const menu = document.getElementById("navbar-menu");
+
+    hamburger.addEventListener("click", () => {
+      hamburger.classList.toggle("active");
+      menu.classList.toggle("active");
+    });
+
+    // Close menu when link is clicked
+    menu.querySelectorAll("a").forEach(link => {
+      link.addEventListener("click", () => {
+        hamburger.classList.remove("active");
+        menu.classList.remove("active");
+      });
+    });
+
+    // Initialize page
+    document.addEventListener("DOMContentLoaded", initDashboard);
+  </script>
+</body>
+</html>
