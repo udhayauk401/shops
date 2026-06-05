@@ -477,6 +477,25 @@ async function startServer() {
 ║   MongoDB: Connected                   ║
 ╚════════════════════════════════════════╝
     `);
+    // Attempt to open the default browser to the server URL
+    try {
+      const { exec } = require("child_process");
+      const url = `http://localhost:${PORT}`;
+      let cmd;
+      if (process.platform === "win32") {
+        // 'start' needs an empty title argument on Windows
+        cmd = `start "" "${url}"`;
+      } else if (process.platform === "darwin") {
+        cmd = `open "${url}"`;
+      } else {
+        cmd = `xdg-open "${url}"`;
+      }
+      exec(cmd, (err) => {
+        if (err) console.error("Failed to open browser:", err.message || err);
+      });
+    } catch (err) {
+      console.error("Failed to auto-open browser:", err);
+    }
   });
 }
 
