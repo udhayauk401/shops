@@ -13,8 +13,8 @@ async function fetchUserNotifications() {
   }
 
   try {
-    const result = await find("notifications", { userId: user._id }, { createdAt: -1 }, 100);
-    const notifications = result && result.documents ? result.documents : [];
+    const result = await apiCall(`/notifications/${user._id}`);
+    const notifications = Array.isArray(result) ? result : (result.data || result);
 
     // Cache in localStorage for faster access
     localStorage.setItem("notifications", JSON.stringify(notifications));
@@ -68,7 +68,7 @@ function getNotificationIcon(type) {
  */
 async function markAsRead(notificationId) {
   try {
-    await updateOne("notifications", { _id: { $oid: notificationId } }, { $set: { isRead: true } });
+    await markNotificationAsReadAPI(notificationId);
 
     // Update localStorage
     const notifications = JSON.parse(localStorage.getItem("notifications")) || [];
@@ -93,7 +93,7 @@ async function markAsRead(notificationId) {
  */
 async function deleteNotification(notificationId) {
   try {
-    await deleteOne("notifications", { _id: { $oid: notificationId } });
+    await deleteNotificationAPI(notificationId);
 
     // Update localStorage
     const notifications = JSON.parse(localStorage.getItem("notifications")) || [];
@@ -171,7 +171,7 @@ async function createNotification(userId, message, type = "default") {
       createdAt: new Date().toISOString(),
     };
 
-    await insertOne("notifications", notification);
+    await apiCall('/notifications', 'POST', notification);
 
     // Update localStorage
     const notifications = JSON.parse(localStorage.getItem("notifications")) || [];

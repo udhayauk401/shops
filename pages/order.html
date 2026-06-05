@@ -72,10 +72,14 @@
 
           <div class="form-group">
             <label>Payment Method</label>
-            <div class="radio-group">
+            <div class="radio-group" style="display: grid; gap: 0.75rem;">
               <label style="display: flex; align-items: center; margin: 0;">
                 <input type="radio" name="payment" value="cod" checked required>
                 <span style="margin-left: 0.5rem;">Cash on Delivery (COD)</span>
+              </label>
+              <label style="display: flex; align-items: center; margin: 0;">
+                <input type="radio" name="payment" value="online" required>
+                <span style="margin-left: 0.5rem;">Online Payment (GPay / PhonePe / Paytm)</span>
               </label>
             </div>
           </div>

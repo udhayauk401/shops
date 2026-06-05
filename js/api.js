@@ -89,6 +89,24 @@ async function addProduct(productData) {
   }
 }
 
+async function updateProduct(productId, productData) {
+  try {
+    const result = await apiCall(`/products/${productId}`, "PATCH", productData);
+    return result;
+  } catch (error) {
+    throw error;
+  }
+}
+
+async function fetchProductByIdAPI(productId) {
+  try {
+    const result = await apiCall(`/products/${productId}`);
+    return result;
+  } catch (error) {
+    throw error;
+  }
+}
+
 /**
  * Order APIs
  */
@@ -174,6 +192,15 @@ async function fetchAllCustomersAPI() {
   try {
     const response = await apiCall("/admin/customers");
     return response.data || response;
+  } catch (error) {
+    throw error;
+  }
+}
+
+async function updateAdminUser(userId, data) {
+  try {
+    const result = await apiCall(`/admin/users/${userId}`, "PATCH", data);
+    return result;
   } catch (error) {
     throw error;
   }

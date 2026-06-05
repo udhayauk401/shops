@@ -24,6 +24,7 @@
       <ul class="navbar-menu" id="navbar-menu">
         <li><a href="admin-dashboard.html">Dashboard</a></li>
         <li><a href="add-product.html">Add Product</a></li>
+        <li><a href="view-products.html">Products</a></li>
         <li><a href="view-orders.html">Orders</a></li>
         <li><a href="view-customers.html" class="active">Customers</a></li>
       </ul>
@@ -37,8 +38,46 @@
   <!-- Customers Management -->
   <div class="container">
     <div class="admin-container">
-      <div id="customers-table-container">
-        <!-- Customers table will be rendered here -->
+      <div style="display: flex; gap: 1rem; align-items: flex-start;">
+        <div style="flex: 1;">
+          <div id="customers-table-container">
+            <!-- Customers table will be rendered here -->
+          </div>
+        </div>
+        <div id="customer-sidepanel" style="width: 360px;">
+          <!-- Side panel for create/edit customer -->
+          <div class="card" style="padding: 1rem;">
+            <h3>Create Customer</h3>
+            <form id="create-customer-form">
+              <div class="form-group">
+                <label for="cust-name">Name</label>
+                <input id="cust-name" type="text" required />
+              </div>
+              <div class="form-group">
+                <label for="cust-email">Email</label>
+                <input id="cust-email" type="email" required />
+              </div>
+              <div class="form-group">
+                <label for="cust-phone">Phone</label>
+                <input id="cust-phone" type="tel" />
+              </div>
+              <div class="form-group">
+                <label for="cust-city">City</label>
+                <input id="cust-city" type="text" />
+              </div>
+              <div class="form-group">
+                <label for="cust-pincode">Pincode</label>
+                <input id="cust-pincode" type="text" />
+              </div>
+              <div class="form-group">
+                <label for="cust-address">Address</label>
+                <textarea id="cust-address" rows="3"></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary" style="width:100%;">Create Customer</button>
+            </form>
+            <p style="font-size:0.85rem; color:var(--gray); margin-top:0.5rem;">A temporary password will be assigned; customer should change it later.</p>
+          </div>
+        </div>
       </div>
     </div>
   </div>

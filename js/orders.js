@@ -15,6 +15,7 @@ async function placeOrder(formData) {
   }
 
   const totalAmount = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const paymentMethod = formData.paymentMethod === "Online" ? "Online" : "COD";
 
   const order = {
     userId: user._id,
@@ -27,32 +28,28 @@ async function placeOrder(formData) {
       city: formData.city,
       pincode: formData.pincode,
     },
-    paymentMethod: "COD",
-    status: "pending",
+    paymentMethod,
+    status: paymentMethod === "Online" ? "payment_pending" : "pending",
     createdAt: new Date().toISOString(),
   };
 
   try {
-    // Insert order
-    const orderResult = await insertOne("orders", order);
+    if (paymentMethod === "Online") {
+      // Save the pending order until user confirms payment on the payment page
+      localStorage.setItem("pendingOnlineOrder", JSON.stringify(order));
+      window.location.href = "payment.html?mode=upi";
+      return true;
+    }
 
-    if (!orderResult || !orderResult.insertedId) {
+    const orderResult = await placeOrderAPI(order);
+
+    if (!orderResult || !orderResult.orderId) {
       showErrorToast("Failed to place order");
       return false;
     }
 
-    const orderId = orderResult.insertedId;
+    const orderId = orderResult.orderId;
 
-    // Create notification
-    await insertOne("notifications", {
-      userId: user._id,
-      message: `Your order #${orderId.substring(0, 8)} has been placed successfully!`,
-      type: "order",
-      isRead: false,
-      createdAt: new Date().toISOString(),
-    });
-
-    // Store last order in localStorage for payment page
     localStorage.setItem(
       "lastOrder",
       JSON.stringify({
@@ -61,7 +58,6 @@ async function placeOrder(formData) {
       })
     );
 
-    // Clear cart
     clearCart();
 
     showSuccessToast("Order placed successfully!");
@@ -77,6 +73,101 @@ async function placeOrder(formData) {
   }
 }
 
+async function completeOnlinePayment() {
+  const pendingOrderData = localStorage.getItem("pendingOnlineOrder");
+  if (!pendingOrderData) {
+    showErrorToast("No pending payment found.");
+    window.location.href = "cart.html";
+    return;
+  }
+
+  const pendingOrder = JSON.parse(pendingOrderData);
+
+  try {
+    const orderResult = await placeOrderAPI(pendingOrder);
+    if (!orderResult || !orderResult.orderId) {
+      showErrorToast("Failed to complete online payment.");
+      return;
+    }
+
+    const orderId = orderResult.orderId;
+    const completedOrder = {
+      _id: orderId,
+      ...pendingOrder,
+      status: "processing",
+    };
+
+    localStorage.removeItem("pendingOnlineOrder");
+    localStorage.setItem("lastOrder", JSON.stringify(completedOrder));
+    clearCart();
+
+    showSuccessToast("Payment confirmed and order placed!");
+    renderPaymentSuccess(completedOrder);
+  } catch (error) {
+    console.error("Online payment completion error:", error);
+    showErrorToast("Failed to complete online payment: " + error.message);
+  }
+}
+
+function renderPaymentSuccess(order) {
+  const paymentMethodCard = document.getElementById("payment-method-card");
+  const summaryContainer = document.getElementById("order-summary");
+  const paymentAction = document.getElementById("payment-action");
+
+  if (paymentAction) {
+    paymentAction.style.display = "none";
+  }
+
+  if (paymentMethodCard) {
+    const paymentLabel = order.paymentMethod === "Online" ? "💳 Online Payment" : "💵 Cash on Delivery";
+    const paymentDescription = order.paymentMethod === "Online"
+      ? "Your payment has been received successfully. Thank you for paying via UPI."
+      : "Pay when you receive your order.";
+
+    paymentMethodCard.innerHTML = `
+      <h3 style="color: var(--primary); margin-bottom: 1rem;">Payment Method</h3>
+      <p style="color: var(--dark); font-size: 1.1rem; margin: 0;">${paymentLabel}</p>
+      <p style="color: var(--gray); font-size: 0.95rem; margin: 0.5rem 0 0 0;">${paymentDescription}</p>
+    `;
+  }
+
+  if (summaryContainer) {
+    summaryContainer.innerHTML = `
+      <div class="card">
+        <h3>Order #${order._id.substring(0, 8).toUpperCase()}</h3>
+        <p style="margin: 0.5rem 0 0 0; color: var(--gray);">${formatDate(order.createdAt)}</p>
+        
+        <h4 style="margin-top: 1.5rem;">Items</h4>
+        <ul style="list-style: none; padding: 0; margin: 1rem 0;">
+          ${order.items
+            .map(
+              (item) =>
+                `<li style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border);">
+                <span>${item.name} × ${item.quantity}</span>
+                <span>₹${(item.price * item.quantity).toFixed(2)}</span>
+              </li>`
+            )
+            .join("")}
+        </ul>
+        
+        <h4 style="margin-top: 1.5rem;">Delivery Address</h4>
+        <p style="margin: 0.5rem 0; color: var(--gray);">
+          ${order.shippingAddress.fullName}<br>
+          ${order.shippingAddress.address}<br>
+          ${order.shippingAddress.city}, ${order.shippingAddress.pincode}
+        </p>
+        
+        <div style="border-top: 1px solid var(--border); padding-top: 1rem; margin-top: 1rem;">
+          <div style="display: flex; justify-content: space-between; font-size: 1.2rem; font-weight: 700; color: var(--primary);">
+            <span>Total Amount:</span>
+            <span>₹${order.totalAmount.toFixed(2)}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+}
+
 /**
  * Fetch user's orders
  */
@@ -88,8 +179,10 @@ async function fetchUserOrders() {
   }
 
   try {
-    const result = await find("orders", { userId: user._id }, { createdAt: -1 }, 100);
-    return result && result.documents ? result.documents : [];
+    const result = await apiCall(`/orders/user/${user._id}`);
+    // apiCall returns data array or wrapped object
+    const orders = Array.isArray(result) ? result : (result.data || result);
+    return orders || [];
   } catch (error) {
     console.error("Error fetching orders:", error);
     showErrorToast("Failed to load orders");
@@ -121,6 +214,17 @@ function getStatusBadgeClass(status) {
 function formatDate(dateString) {
   const options = { year: "numeric", month: "short", day: "numeric" };
   return new Date(dateString).toLocaleDateString(undefined, options);
+}
+
+function getUpiUri(amount) {
+  const params = new URLSearchParams({
+    pa: "udhayaraja7777@oksbi",
+    pn: "DressLux",
+    am: amount?.toFixed(2) || "0.00",
+    cu: "INR",
+    tn: "DressLux Order Payment",
+  });
+  return `upi://pay?${params.toString()}`;
 }
 
 /**
@@ -167,7 +271,37 @@ function renderOrders(orders) {
       </div>
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <span class="badge ${getStatusBadgeClass(order.status)}">${order.status.charAt(0).toUpperCase() + order.status.slice(1)}</span>
-        <button class="btn btn-small btn-outline" onclick="viewOrderDetails('${order._id}')">View Details</button>
+        <button class="btn btn-small btn-outline" onclick="toggleOrderDetails('${order._id}')">View Details</button>
+      </div>
+      <div id="order-details-${order._id}" class="order-details-panel" style="display:none; margin-top: 1rem; padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius); background: #fff;">
+        <h3 style="margin-top: 0;">Order Details</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; text-align: left;">
+          <div>
+            <strong>Shipping Address</strong>
+            <p style="margin: 0.4rem 0 0 0;">${order.shippingAddress.fullName}</p>
+            <p style="margin: 0.2rem 0 0 0;">${order.shippingAddress.phone}</p>
+            <p style="margin: 0.2rem 0 0 0;">${order.shippingAddress.address}, ${order.shippingAddress.city} - ${order.shippingAddress.pincode}</p>
+          </div>
+          <div>
+            <strong>Order Info</strong>
+            <p style="margin: 0.4rem 0 0 0;">Payment: ${order.paymentMethod}</p>
+            <p style="margin: 0.2rem 0 0 0;">Status: ${order.status.charAt(0).toUpperCase() + order.status.slice(1)}</p>
+            <p style="margin: 0.2rem 0 0 0;">Total: ₹${order.totalAmount.toFixed(2)}</p>
+          </div>
+        </div>
+        <div>
+          <strong>Items</strong>
+          <ul style="margin: 0.5rem 0 0 1rem; padding: 0; list-style: disc;">
+            ${order.items
+              .map(
+                (item) => `
+              <li style="margin-bottom: 0.5rem;">
+                <strong>${item.name}</strong> • Qty: ${item.quantity} • Size: ${item.size || 'N/A'} • ₹${item.price.toFixed(2)}
+              </li>`
+              )
+              .join("")}
+          </ul>
+        </div>
       </div>
     </div>
   `
@@ -176,11 +310,20 @@ function renderOrders(orders) {
 }
 
 /**
- * View order details (modal or detail page)
+ * Toggle order details visibility
  */
-function viewOrderDetails(orderId) {
-  // For now, just show an alert with the order ID
-  alert(`Order Details: ${orderId}\n\nThis feature will show full order details in a popup or detail page.`);
+function toggleOrderDetails(orderId) {
+  const detailsElement = document.getElementById(`order-details-${orderId}`);
+  const button = detailsElement?.previousElementSibling?.querySelector("button");
+  if (!detailsElement) return;
+
+  if (detailsElement.style.display === "none") {
+    detailsElement.style.display = "block";
+    if (button) button.textContent = "Hide Details";
+  } else {
+    detailsElement.style.display = "none";
+    if (button) button.textContent = "View Details";
+  }
 }
 
 /**
@@ -250,6 +393,27 @@ function initOrderPage() {
     return;
   }
 
+  // Autofill delivery details from current user if available
+  try {
+    const user = getCurrentUser();
+    if (user) {
+      const addr = user.lastShippingAddress || {};
+      const fNameEl = document.getElementById("fullName");
+      const phoneEl = document.getElementById("phone");
+      const addressEl = document.getElementById("address");
+      const cityEl = document.getElementById("city");
+      const pincodeEl = document.getElementById("pincode");
+
+      if (fNameEl) fNameEl.value = addr.fullName || user.name || fNameEl.value || "";
+      if (phoneEl) phoneEl.value = addr.phone || user.phone || phoneEl.value || "";
+      if (addressEl) addressEl.value = addr.address || addressEl.value || "";
+      if (cityEl) cityEl.value = addr.city || cityEl.value || "";
+      if (pincodeEl) pincodeEl.value = addr.pincode || pincodeEl.value || "";
+    }
+  } catch (err) {
+    console.warn("Autofill error:", err);
+  }
+
   // Display order summary
   const summaryContainer = document.getElementById("order-summary-container");
   if (summaryContainer) {
@@ -282,12 +446,14 @@ function initOrderPage() {
     orderForm.addEventListener("submit", async (e) => {
       e.preventDefault();
 
+      const paymentSelection = document.querySelector('input[name="payment"]:checked');
       const formData = {
         fullName: document.getElementById("fullName").value,
         phone: document.getElementById("phone").value,
         address: document.getElementById("address").value,
         city: document.getElementById("city").value,
         pincode: document.getElementById("pincode").value,
+        paymentMethod: paymentSelection?.value === "online" ? "Online" : "COD",
       };
 
       if (!validateOrderForm(formData)) {
@@ -314,6 +480,107 @@ function initOrderPage() {
 function initPaymentPage() {
   requireAuth();
 
+  const urlParams = new URLSearchParams(window.location.search);
+  const mode = urlParams.get("mode");
+  const summaryContainer = document.getElementById("order-summary");
+  const paymentMethodCard = document.getElementById("payment-method-card");
+  const paymentAction = document.getElementById("payment-action");
+
+  if (mode === "upi") {
+    const pendingOrderData = localStorage.getItem("pendingOnlineOrder");
+    if (!pendingOrderData) {
+      window.location.href = "cart.html";
+      return;
+    }
+
+    const order = JSON.parse(pendingOrderData);
+    const upiUri = getUpiUri(order.totalAmount);
+    if (paymentMethodCard) {
+      paymentMethodCard.innerHTML = `
+        <h3 style="color: var(--primary); margin-bottom: 1rem;">UPI Payment</h3>
+        <p style="color: var(--dark); font-size: 1.1rem; margin: 0;">Pay with GPay, PhonePe, or Paytm.</p>
+        <p style="color: var(--gray); font-size: 0.95rem; margin: 0.5rem 0 1rem 0;">Click one of the buttons below to open your app and pay the bill.</p>
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center; margin-bottom: 1rem;">
+          <a href="${upiUri}" class="btn btn-primary" style="flex: 1 1 180px; text-align: center;">Open GPay</a>
+          <a href="${upiUri}" class="btn btn-primary" style="flex: 1 1 180px; text-align: center;">Open PhonePe</a>
+          <a href="${upiUri}" class="btn btn-primary" style="flex: 1 1 180px; text-align: center;">Open Paytm</a>
+        </div>
+        <div style="margin-top: 1rem; padding: 1rem; border-radius: var(--radius); background: #f7f7f6; border: 1px solid var(--border);">
+          <p style="margin: 0.25rem 0;"><strong>UPI ID:</strong> udhayaraja7777@oksbi</p>
+          <p style="margin: 0.25rem 0;"><strong>Payee Name:</strong> DressLux</p>
+          <p style="margin: 0.25rem 0;"><strong>Amount:</strong> ₹${order.totalAmount.toFixed(2)}</p>
+          <p style="margin: 0.75rem 0 0 0; color: var(--gray);">After completing the payment in your UPI app, click Confirm Payment.</p>
+        </div>
+      `;
+    }
+
+    if (summaryContainer) {
+      summaryContainer.innerHTML = `
+        <div class="card">
+          <h3>Order Summary</h3>
+          <p style="margin: 0.5rem 0 0 0; color: var(--gray);">${formatDate(order.createdAt)}</p>
+
+          <h4 style="margin-top: 1.5rem;">Items</h4>
+          <ul style="list-style: none; padding: 0; margin: 1rem 0;">
+            ${order.items
+              .map(
+                (item) =>
+                  `<li style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border);">
+                  <span>${item.name} × ${item.quantity}</span>
+                  <span>₹${(item.price * item.quantity).toFixed(2)}</span>
+                </li>`
+              )
+              .join("")}
+          </ul>
+
+          <h4 style="margin-top: 1.5rem;">Delivery Address</h4>
+          <p style="margin: 0.5rem 0; color: var(--gray);">
+            ${order.shippingAddress.fullName}<br>
+            ${order.shippingAddress.address}<br>
+            ${order.shippingAddress.city}, ${order.shippingAddress.pincode}
+          </p>
+
+          <div style="border-top: 1px solid var(--border); padding-top: 1rem; margin-top: 1rem;">
+            <div style="display: flex; justify-content: space-between; font-size: 1.2rem; font-weight: 700; color: var(--primary);">
+              <span>Total Amount:</span>
+              <span>₹${order.totalAmount.toFixed(2)}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    if (paymentAction) {
+      paymentAction.innerHTML = `
+        <button id="confirm-payment-btn" class="submit-btn" style="width: 100%; margin-top: 1rem;">Confirm Payment</button>
+        <button id="cancel-payment-btn" class="btn btn-outline" style="width: 100%; margin-top: 0.75rem;">Cancel Payment</button>
+      `;
+
+      const confirmButton = document.getElementById("confirm-payment-btn");
+      const cancelButton = document.getElementById("cancel-payment-btn");
+
+      if (confirmButton) {
+        confirmButton.addEventListener("click", async () => {
+          confirmButton.disabled = true;
+          confirmButton.textContent = "Confirming...";
+          await completeOnlinePayment();
+          confirmButton.disabled = false;
+          confirmButton.textContent = "Confirm Payment";
+        });
+      }
+
+      if (cancelButton) {
+        cancelButton.addEventListener("click", () => {
+          localStorage.removeItem("pendingOnlineOrder");
+          window.location.href = "cart.html";
+        });
+      }
+    }
+
+    updateCartBadge();
+    return;
+  }
+
   const lastOrder = localStorage.getItem("lastOrder");
   if (!lastOrder) {
     window.location.href = "cart.html";
@@ -321,43 +588,6 @@ function initPaymentPage() {
   }
 
   const order = JSON.parse(lastOrder);
-  const summaryContainer = document.getElementById("order-summary");
-
-  if (summaryContainer) {
-    summaryContainer.innerHTML = `
-      <div class="card">
-        <h3>Order #${order._id.substring(0, 8).toUpperCase()}</h3>
-        <p style="margin: 0.5rem 0 0 0; color: var(--gray);">${formatDate(order.createdAt)}</p>
-        
-        <h4 style="margin-top: 1.5rem;">Items</h4>
-        <ul style="list-style: none; padding: 0; margin: 1rem 0;">
-          ${order.items
-            .map(
-              (item) =>
-                `<li style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border);">
-                <span>${item.name} × ${item.quantity}</span>
-                <span>₹${(item.price * item.quantity).toFixed(2)}</span>
-              </li>`
-            )
-            .join("")}
-        </ul>
-        
-        <h4 style="margin-top: 1.5rem;">Delivery Address</h4>
-        <p style="margin: 0.5rem 0; color: var(--gray);">
-          ${order.shippingAddress.fullName}<br>
-          ${order.shippingAddress.address}<br>
-          ${order.shippingAddress.city}, ${order.shippingAddress.pincode}
-        </p>
-        
-        <div style="border-top: 1px solid var(--border); padding-top: 1rem; margin-top: 1rem;">
-          <div style="display: flex; justify-content: space-between; font-size: 1.2rem; font-weight: 700; color: var(--primary);">
-            <span>Total Amount:</span>
-            <span>₹${order.totalAmount.toFixed(2)}</span>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
+  renderPaymentSuccess(order);
   updateCartBadge();
 }

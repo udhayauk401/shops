@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Product - DressLux Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../css/style.css">
+  <link rel="stylesheet" href="../../css/navbar.css">
+  <link rel="stylesheet" href="../../css/admin.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-content">
+      <a href="admin-dashboard.html" class="navbar-logo">DressLux Admin</a>
+
+      <div class="hamburger" id="hamburger">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+
+      <ul class="navbar-menu" id="navbar-menu">
+        <li><a href="admin-dashboard.html">Dashboard</a></li>
+        <li><a href="add-product.html">Add Product</a></li>
+        <li><a href="view-products.html" class="active">Products</a></li>
+        <li><a href="view-orders.html">Orders</a></li>
+        <li><a href="view-customers.html">Customers</a></li>
+      </ul>
+
+      <div class="navbar-icons">
+        <button class="logout-btn" onclick="logoutUser()">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="admin-container">
+      <form id="product-form" class="admin-form">
+        <h1>Edit Product</h1>
+
+        <div class="form-section">
+          <h3>Basic Information</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="productName">Product Name *</label>
+              <input type="text" id="productName" placeholder="Enter product name" required>
+            </div>
+            <div class="form-group">
+              <label for="productCategory">Category *</label>
+              <select id="productCategory" required>
+                <option value="">Select Category</option>
+                <option value="Classic">Classic</option>
+                <option value="Formal">Formal</option>
+                <option value="Party">Party</option>
+                <option value="Traditional">Traditional</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row full">
+            <div class="form-group">
+              <label for="productDescription">Description *</label>
+              <textarea id="productDescription" placeholder="Enter product description" required></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Pricing & Stock</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="productPrice">Price (₹) *</label>
+              <input type="number" id="productPrice" placeholder="0.00" step="0.01" required>
+            </div>
+            <div class="form-group">
+              <label for="productStock">Stock Quantity *</label>
+              <input type="number" id="productStock" placeholder="0" min="0" required>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Sizes</h3>
+          <div class="checkbox-group">
+            <label class="checkbox-item">
+              <input type="checkbox" name="sizes" value="XS">
+              <span>XS</span>
+            </label>
+            <label class="checkbox-item">
+              <input type="checkbox" name="sizes" value="S">
+              <span>S</span>
+            </label>
+            <label class="checkbox-item">
+              <input type="checkbox" name="sizes" value="M">
+              <span>M</span>
+            </label>
+            <label class="checkbox-item">
+              <input type="checkbox" name="sizes" value="L">
+              <span>L</span>
+            </label>
+            <label class="checkbox-item">
+              <input type="checkbox" name="sizes" value="XL">
+              <span>XL</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Product Image</h3>
+          <div class="form-row full">
+            <div class="form-group">
+              <label for="imageUrl">Image URL *</label>
+              <input type="url" id="imageUrl" placeholder="https://example.com/image.jpg" required>
+            </div>
+          </div>
+          <div class="image-preview" id="image-preview">
+            <img src="" alt="Preview">
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="submit-btn">Save Changes</button>
+          <a href="view-products.html" class="cancel-btn">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../../js/api.js"></script>
+  <script src="../../js/auth.js"></script>
+  <script src="../../js/admin.js"></script>
+  <script>
+    const hamburger = document.getElementById("hamburger");
+    const menu = document.getElementById("navbar-menu");
+
+    hamburger.addEventListener("click", () => {
+      hamburger.classList.toggle("active");
+      menu.classList.toggle("active");
+    });
+
+    document.addEventListener("DOMContentLoaded", initEditProductPage);
+  </script>
+</body>
+</html>

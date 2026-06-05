@@ -4,14 +4,17 @@
 
 let allProducts = [];
 let filteredProducts = [];
+let currentCategory = 'All';
 
 /**
- * Fetch all products from database
+ * Fetch all products from backend API
  */
 async function fetchAllProducts() {
   try {
-    const result = await find("products", {}, { createdAt: -1 }, 1000);
-    allProducts = result && result.documents ? result.documents : [];
+    const result = await apiCall('/products');
+    // apiCall returns the data array directly (or an object), normalize
+    const products = Array.isArray(result) ? result : (result.data || []);
+    allProducts = products;
     filteredProducts = [...allProducts];
     return allProducts;
   } catch (error) {
@@ -26,8 +29,8 @@ async function fetchAllProducts() {
  */
 async function fetchProductById(productId) {
   try {
-    const result = await findOne("products", { _id: { $oid: productId } });
-    return result && result.document ? result.document : null;
+    const result = await apiCall(`/products/${productId}`);
+    return result || null;
   } catch (error) {
     console.error("Error fetching product:", error);
     showErrorToast("Failed to load product");
@@ -39,6 +42,7 @@ async function fetchProductById(productId) {
  * Filter products by category
  */
 function filterByCategory(category) {
+  currentCategory = category;
   if (category === "All") {
     filteredProducts = [...allProducts];
   } else {
@@ -67,13 +71,22 @@ function renderProducts() {
   if (!container) return;
 
   if (filteredProducts.length === 0) {
-    container.innerHTML = `
+    const message = allProducts.length === 0
+      ? `
       <div class="empty-state" style="grid-column: 1 / -1;">
-        <div class="empty-state-icon">🔍</div>
-        <h2>No products found</h2>
-        <p>Try adjusting your search or filter criteria</p>
+        <div class="empty-state-icon">👗</div>
+        <h2>No products available</h2>
+        <p>Check back soon for our latest collection</p>
+      </div>
+    `
+      : `
+      <div class="empty-state" style="grid-column: 1 / -1;">
+        <div class="empty-state-icon">📭</div>
+        <h2>No products available in this category.</h2>
       </div>
     `;
+
+    container.innerHTML = message;
     return;
   }
 
@@ -136,11 +149,12 @@ async function displayProductDetail(productId) {
   if (productPriceEl) productPriceEl.textContent = `₹${product.price.toFixed(2)}`;
   if (productDescriptionEl) {
     productDescriptionEl.innerHTML = `
+      <span class="badge badge-secondary">${product.category || 'Uncategorized'}</span>
       <h3>Description</h3>
       <p>${product.description || "No description available"}</p>
       <h3 style="margin-top: 1.5rem;">Details</h3>
-      <p><strong>Category:</strong> ${product.category}</p>
-      <p><strong>Stock:</strong> ${product.stock} items available</p>
+      <p><strong>Stock:</strong> ${product.stock || 0} items available</p>
+      <p><strong>Product Code:</strong> #${product._id.substring(0, 8).toUpperCase()}</p>
     `;
   }
 
@@ -157,17 +171,22 @@ async function displayProductDetail(productId) {
   // Add to cart button handler
   if (addToCartBtn) {
     addToCartBtn.onclick = () => {
+      if (product.stock <= 0) {
+        showErrorToast("This product is out of stock");
+        return;
+      }
       const selectedSize = document.querySelector(".size-btn.selected");
       if (!selectedSize) {
         showErrorToast("Please select a size");
         return;
       }
-      addToCart(product._id, product.name, product.price, product.imageUrl, selectedSize.textContent);
+      addToCart(product._id, product.name, product.price, product.imageUrl, selectedSize.textContent, currentQuantity);
     };
   }
 
   // Load and display related products
   const relatedContainer = document.getElementById("related-products");
+  const relatedSection = document.getElementById("related-section");
   if (relatedContainer && product.category) {
     const related = allProducts.filter(
       (p) => p.category === product.category && p._id !== product._id
@@ -192,6 +211,11 @@ async function displayProductDetail(productId) {
       `
         )
         .join("");
+      if (relatedSection) {
+        relatedSection.style.display = "block";
+      }
+    } else if (relatedSection) {
+      relatedSection.style.display = "none";
     }
   }
 }
@@ -199,11 +223,16 @@ async function displayProductDetail(productId) {
 /**
  * Select size for product
  */
-function selectSize(size) {
+function selectSize(size, event) {
   document.querySelectorAll(".size-btn").forEach((btn) => {
     btn.classList.remove("selected");
   });
-  event.target.classList.add("selected");
+  if (event && event.currentTarget) {
+    event.currentTarget.classList.add("selected");
+  } else {
+    const btn = document.querySelector(`.size-btn[data-size="${size}"]`);
+    if (btn) btn.classList.add("selected");
+  }
 }
 
 /**

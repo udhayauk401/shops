@@ -351,6 +351,40 @@
   background-color: #ffebee;
 }
 
+.order-detail-row {
+  background-color: #faf9f7;
+}
+
+.order-details-panel {
+  padding: 1rem;
+  border-radius: var(--radius);
+  background-color: #ffffff;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+
+.order-details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.order-items-list {
+  list-style: disc inside;
+  margin: 0.75rem 0 1rem;
+  padding-left: 1rem;
+  color: var(--gray);
+}
+
+.order-items-list li {
+  margin-bottom: 0.5rem;
+}
+
+.order-shipping-address {
+  color: var(--gray);
+  line-height: 1.5;
+}
+
 .status-select {
   padding: 6px 10px;
   border: 1px solid var(--border);

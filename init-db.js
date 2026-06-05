@@ -75,74 +75,30 @@ async function initializeDatabase() {
     console.log("\n📦 Adding sample products...");
 
     const sampleProducts = [
-      {
-        name: "Elegant Evening Gown",
-        description: "Stunning deep rose evening gown with intricate beading and elegant flow",
-        price: 5999,
-        category: "Formal",
-        sizes: ["XS", "S", "M", "L", "XL"],
-        stock: 15,
-        imageUrl: "https://images.unsplash.com/photo-1595777712802-ec7dd9b6b4a7?w=500",
-        isNew: true,
-        createdAt: new Date(),
-      },
-      {
-        name: "Casual Summer Dress",
-        description: "Light and breezy summer dress perfect for warm days",
-        price: 1899,
-        category: "Casual",
-        sizes: ["XS", "S", "M", "L", "XL"],
-        stock: 25,
-        imageUrl: "https://images.unsplash.com/photo-1551028719-00167b16ebc5?w=500",
-        isNew: true,
-        createdAt: new Date(),
-      },
-      {
-        name: "Party Sequin Dress",
-        description: "Glamorous sequin dress perfect for parties and celebrations",
-        price: 3499,
-        category: "Party",
-        sizes: ["XS", "S", "M", "L", "XL"],
-        stock: 20,
-        imageUrl: "https://images.unsplash.com/photo-1567306226416-28f0efb6b0eb?w=500",
-        isNew: true,
-        createdAt: new Date(),
-      },
-      {
-        name: "Traditional Saree",
-        description: "Beautiful traditional saree with gold embroidery",
-        price: 4499,
-        category: "Traditional",
-        sizes: ["One Size"],
-        stock: 10,
-        imageUrl: "https://images.unsplash.com/photo-1610899010893-e3f8e6dfd1d0?w=500",
-        isNew: true,
-        createdAt: new Date(),
-      },
-      {
-        name: "Formal Blazer Dress",
-        description: "Professional formal dress with blazer styling",
-        price: 2999,
-        category: "Formal",
-        sizes: ["XS", "S", "M", "L", "XL"],
-        stock: 18,
-        imageUrl: "https://images.unsplash.com/photo-1607345604733-397bf44ff36e?w=500",
-        isNew: false,
-        createdAt: new Date(),
-      },
+      { name: "Classic Floral Dress", category: "Classic", price: 1999, description: "Classic floral print dress", sizes: ["XS","S","M","L","XL"], stock: 20, imageUrl: "https://images.unsplash.com/photo-1520975913109-7f8e1d9d1e8d?w=500", isNew: true, createdAt: new Date() },
+      { name: "Office Formal Suit", category: "Formal", price: 2499, description: "Structured office formal suit", sizes: ["S","M","L"], stock: 15, imageUrl: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=500", isNew: false, createdAt: new Date() },
+      { name: "Party Night Gown", category: "Party", price: 3499, description: "Gorgeous party night gown", sizes: ["S","M","L"], stock: 12, imageUrl: "https://images.unsplash.com/photo-1514995669114-5f2a9d0c5d3e?w=500", isNew: true, createdAt: new Date() },
+      { name: "Traditional Silk Saree", category: "Traditional", price: 4999, description: "Silk saree with intricate motifs", sizes: ["One Size"], stock: 8, imageUrl: "https://images.unsplash.com/photo-1503341455253-b2e723bb3dbb?w=500", isNew: false, createdAt: new Date() },
+      // keep a few existing items
+      { name: "Elegant Evening Gown", description: "Stunning deep rose evening gown with intricate beading and elegant flow", price: 5999, category: "Formal", sizes: ["XS","S","M","L","XL"], stock: 15, imageUrl: "https://images.unsplash.com/photo-1595777712802-ec7dd9b6b4a7?w=500", isNew: true, createdAt: new Date() }
     ];
 
     try {
-      const existingProducts = await db.collection("products").countDocuments();
-
-      if (existingProducts === 0) {
-        const result = await db.collection("products").insertMany(sampleProducts);
-        console.log(`  ✓ Added ${result.insertedIds.length} sample products`);
-        sampleProducts.forEach((product) => {
-          console.log(`    - ${product.name} (${product.category})`);
-        });
+      let insertedCount = 0;
+      for (const product of sampleProducts) {
+        const exists = await db.collection("products").findOne({ name: product.name });
+        if (!exists) {
+          await db.collection("products").insertOne(product);
+          insertedCount++;
+          console.log(`    + Inserted: ${product.name} (${product.category})`);
+        } else {
+          console.log(`    - Exists: ${product.name}`);
+        }
+      }
+      if (insertedCount > 0) {
+        console.log(`  ✓ Added ${insertedCount} missing sample products`);
       } else {
-        console.log(`  ℹ Products already exist (${existingProducts} found)`);
+        console.log(`  ℹ All sample products already exist`);
       }
     } catch (error) {
       console.log("  ⚠ Could not add products:", error.message);

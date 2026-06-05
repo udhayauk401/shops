@@ -140,9 +140,11 @@ app.post("/api/auth/login", async (req, res) => {
 // Get All Products
 app.get("/api/products", async (req, res) => {
   try {
+    const { category } = req.query;
+    const filter = category && category !== "All" ? { category } : {};
     const products = await db
       .collection("products")
-      .find({})
+      .find(filter)
       .sort({ createdAt: -1 })
       .toArray();
 
@@ -204,6 +206,86 @@ app.post("/api/products", async (req, res) => {
   }
 });
 
+// Update Product (Admin)
+app.patch("/api/products/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, description, price, category, sizes, stock, imageUrl } = req.body;
+
+    if (!ObjectId.isValid(id)) {
+      return respondError(res, 400, "Invalid product ID");
+    }
+
+    const updateFields = {
+      ...(name !== undefined && { name }),
+      ...(description !== undefined && { description }),
+      ...(price !== undefined && { price: Number(price) }),
+      ...(category !== undefined && { category }),
+      ...(sizes !== undefined && { sizes: sizes || [] }),
+      ...(stock !== undefined && { stock: Number(stock) || 0 }),
+      ...(imageUrl !== undefined && { imageUrl }),
+      updatedAt: new Date(),
+    };
+
+    const result = await db.collection("products").updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updateFields }
+    );
+
+    if (result.matchedCount === 0) {
+      return respondError(res, 404, "Product not found");
+    }
+
+    respondSuccess(res, null, "Product updated successfully");
+  } catch (error) {
+    console.error("Update Product Error:", error);
+    respondError(res, 500, "Failed to update product");
+  }
+});
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// COLLECTION ROUTES
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// Create Collection (Admin)
+app.post("/api/collections", async (req, res) => {
+  try {
+    const { name, description, imageUrl } = req.body;
+
+    if (!name) {
+      return respondError(res, 400, "Collection name required");
+    }
+
+    const result = await db.collection("collections").insertOne({
+      name,
+      description: description || "",
+      imageUrl: imageUrl || "",
+      createdAt: new Date(),
+    });
+
+    respondSuccess(res, { collectionId: result.insertedId }, "Collection created successfully");
+  } catch (error) {
+    console.error("Add Collection Error:", error);
+    respondError(res, 500, "Failed to create collection");
+  }
+});
+
+// Get All Collections
+app.get("/api/collections", async (req, res) => {
+  try {
+    const collections = await db
+      .collection("collections")
+      .find({})
+      .sort({ createdAt: -1 })
+      .toArray();
+
+    respondSuccess(res, collections);
+  } catch (error) {
+    console.error("Get Collections Error:", error);
+    respondError(res, 500, "Failed to fetch collections");
+  }
+});
+
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // ORDER ROUTES
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -237,6 +319,16 @@ app.post("/api/orders", async (req, res) => {
       isRead: false,
       createdAt: new Date(),
     });
+
+    // Update user's last shipping address so admin can view customer details
+    try {
+      await db.collection("users").updateOne(
+        { _id: new ObjectId(userId) },
+        { $set: { lastShippingAddress: shippingAddress } }
+      );
+    } catch (err) {
+      console.error("Failed to update user shipping address:", err);
+    }
 
     respondSuccess(res, { orderId: result.insertedId }, "Order placed successfully");
   } catch (error) {
@@ -431,6 +523,35 @@ app.get("/api/admin/customers", async (req, res) => {
   } catch (error) {
     console.error("Get Customers Error:", error);
     respondError(res, 500, "Failed to fetch customers");
+  }
+});
+
+// Update user (admin) - set fields like lastShippingAddress or phone
+app.patch("/api/admin/users/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const updates = req.body || {};
+
+    if (!ObjectId.isValid(userId)) {
+      return respondError(res, 400, "Invalid user ID");
+    }
+
+    const allowed = ["lastShippingAddress", "phone", "name", "email"];
+    const setObj = {};
+    Object.keys(updates).forEach((k) => {
+      if (allowed.includes(k)) setObj[k] = updates[k];
+    });
+
+    if (Object.keys(setObj).length === 0) {
+      return respondError(res, 400, "No valid fields to update");
+    }
+
+    await db.collection("users").updateOne({ _id: new ObjectId(userId) }, { $set: setObj });
+
+    respondSuccess(res, null, "User updated successfully");
+  } catch (error) {
+    console.error("Update User Error:", error);
+    respondError(res, 500, "Failed to update user");
   }
 });
 

@@ -44,15 +44,14 @@
       <h1 style="color: #388e3c; margin-bottom: 1rem;">Order Placed Successfully!</h1>
       <p style="font-size: 1.1rem; color: var(--gray); margin-bottom: 2rem;">Thank you for shopping with DressLux!</p>
 
-      <div class="card" style="max-width: 600px; margin: 0 auto 2rem;">
-        <h3 style="color: var(--primary); margin-bottom: 1rem;">Payment Method</h3>
-        <p style="color: var(--dark); font-size: 1.1rem; margin: 0;">💳 Cash on Delivery</p>
-        <p style="color: var(--gray); font-size: 0.95rem; margin: 0.5rem 0 0 0;">Pay when you receive your order</p>
+      <div id="payment-method-card" class="card" style="max-width: 600px; margin: 0 auto 2rem; padding: 1.5rem; text-align: left;">
+        <!-- Payment method details will be rendered here -->
       </div>
 
       <div id="order-summary" style="max-width: 600px; margin: 0 auto 2rem;">
         <!-- Order summary will be loaded here -->
       </div>
+      <div id="payment-action" style="max-width: 600px; margin: 0 auto 1rem;"></div>
 
       <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
         <a href="my-orders.html" class="btn btn-primary">View My Orders</a>

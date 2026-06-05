@@ -21,14 +21,18 @@ function saveCart(cart) {
 /**
  * Add item to cart
  */
-function addToCart(productId, name, price, imageUrl, size = "M") {
+function addToCart(productId, name, price, imageUrl, size = "M", quantity = 1) {
   const cart = getCart();
+
+  // Ensure quantity is at least 1
+  quantity = parseInt(quantity) || 1;
+  if (quantity <= 0) quantity = 1;
 
   // Check if item with same product and size already exists
   const existingItem = cart.find((item) => item.productId === productId && item.size === size);
 
   if (existingItem) {
-    existingItem.quantity += 1;
+    existingItem.quantity += quantity;
   } else {
     cart.push({
       productId,
@@ -36,7 +40,7 @@ function addToCart(productId, name, price, imageUrl, size = "M") {
       price,
       imageUrl,
       size,
-      quantity: 1,
+      quantity,
     });
   }
 

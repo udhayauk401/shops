@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Add Collection - Admin</title>
+  <link rel="stylesheet" href="/css/admin.css" />
+</head>
+<body>
+  <main class="container">
+    <h1>Add New Collection</h1>
+    <form id="collectionForm">
+      <label>Name<br /><input type="text" id="name" required /></label><br />
+      <label>Description<br /><textarea id="description"></textarea></label><br />
+      <label>Image URL<br /><input type="text" id="imageUrl" /></label><br />
+      <button type="submit">Create Collection</button>
+    </form>
+    <div id="message" aria-live="polite"></div>
+  </main>
+
+  <script>
+    const form = document.getElementById('collectionForm');
+    const msg = document.getElementById('message');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      msg.textContent = '';
+      const payload = {
+        name: document.getElementById('name').value.trim(),
+        description: document.getElementById('description').value.trim(),
+        imageUrl: document.getElementById('imageUrl').value.trim(),
+      };
+
+      try {
+        const res = await fetch('/api/collections', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Server error');
+        msg.textContent = 'Collection created successfully.';
+        form.reset();
+      } catch (err) {
+        msg.textContent = 'Error: ' + (err.message || err);
+      }
+    });
+  </script>
+</body>
+</html>
