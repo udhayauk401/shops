@@ -12,27 +12,16 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
-const allowedOrigins = [
-  "https://zingy-torrone-19bfd4.netlify.app",
-  "http://localhost:8000",
-  "http://127.0.0.1:8000",
-  "http://localhost:3000",
-];
-
-const corsOptions = {
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error(`CORS policy violation: origin ${origin} not allowed`));
-    }
-  },
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true,
-};
-app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
+app.use(cors({
+  origin: [
+    'https://zingy-torrone-19bfd4.netlify.app',
+    'http://localhost:3000'  // keep for local dev
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true  // only if you use cookies/auth headers
+}));
+app.options('*', cors());
 app.use(express.json());
 
 // Serve static files (CSS, JS, images, etc.)
