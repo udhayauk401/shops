@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "server.js", "use": "@vercel/node" }
+  ],
+  "routes": [
+    { "src": "/favicon.ico", "dest": "/server.js" },
+    { "src": "/api/(.*)", "dest": "/server.js" },
+    { "src": "/(.*)", "dest": "/server.js" }
+  ],
+  "env": {
+    "MONGO_URI": "@mongo_uri",
+    "MERCHANT_UPI_ID": "@merchant_upi_id",
+    "MERCHANT_NAME": "@merchant_name"
+  }
+}

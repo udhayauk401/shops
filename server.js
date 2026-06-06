@@ -60,6 +60,11 @@ function respondError(res, statusCode, error) {
 // ──────────────────────────────────────────────────
 const paymentRoutes = require('./routes/paymentRoutes');
 
+// Prevent 500 errors for missing static files (favicon, robots, sitemap)
+app.get('/favicon.ico', (req, res) => res.status(204).end());
+app.get('/robots.txt', (req, res) => res.status(204).end());
+app.get('/sitemap.xml', (req, res) => res.status(204).end());
+
 // ──────────────────────────────────────────────────
 // MOUNT ROUTES
 // ──────────────────────────────────────────────────
