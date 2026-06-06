@@ -207,6 +207,32 @@ async function updateAdminUser(userId, data) {
 }
 
 /**
+ * Payment APIs
+ */
+async function generateUPILinks(productName, amount, customerName) {
+  try {
+    const result = await apiCall("/payment/generate-upi", "POST", {
+      productName,
+      amount,
+      customerName,
+    });
+    return result;
+  } catch (error) {
+    throw error;
+  }
+}
+
+async function confirmPayment(orderId) {
+  try {
+    const result = await apiCall(`/payment/confirm/${orderId}`, "PATCH");
+    return result;
+  } catch (error) {
+    throw error;
+  }
+}
+
+
+/**
  * Check if API is configured
  */
 function isAPIConfigured() {

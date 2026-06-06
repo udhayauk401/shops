@@ -556,6 +556,78 @@ app.patch("/api/admin/users/:userId", async (req, res) => {
 });
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// UPI PAYMENT ROUTES
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// POST /api/payment/generate-upi
+app.post("/api/payment/generate-upi", async (req, res) => {
+  try {
+    const { productName, amount, customerName } = req.body;
+
+    if (!productName || !amount || !customerName) {
+      return respondError(res, 400, "Missing required fields");
+    }
+
+    const MERCHANT_UPI = "udhayaraja7777@oksbi";
+    const MERCHANT_NAME = "DressLux Store";
+    const orderId = "DLX" + Date.now();
+    const note = `DressLux: ${productName}`;
+
+    const baseUPI = `upi://pay?pa=${MERCHANT_UPI}&pn=${encodeURIComponent(MERCHANT_NAME)}&am=${amount}&cu=INR&tn=${encodeURIComponent(note)}&tr=${orderId}`;
+    const gpayURL = `intent://pay?pa=${MERCHANT_UPI}&pn=${encodeURIComponent(MERCHANT_NAME)}&am=${amount}&cu=INR&tn=${encodeURIComponent(note)}&tr=${orderId}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
+    const phonepeURL = `intent://pay?pa=${MERCHANT_UPI}&pn=${encodeURIComponent(MERCHANT_NAME)}&am=${amount}&cu=INR&tn=${encodeURIComponent(note)}&tr=${orderId}#Intent;scheme=upi;package=com.phonepe.app;end`;
+    const paytmURL = `intent://pay?pa=${MERCHANT_UPI}&pn=${encodeURIComponent(MERCHANT_NAME)}&am=${amount}&cu=INR&tn=${encodeURIComponent(note)}&tr=${orderId}#Intent;scheme=upi;package=net.one97.paytm;end`;
+
+    const paymentOrder = {
+      orderId,
+      productName,
+      amount: Number(amount),
+      customerName,
+      merchantUPI: MERCHANT_UPI,
+      status: "pending",
+      createdAt: new Date(),
+    };
+
+    await db.collection("payment_orders").insertOne(paymentOrder);
+
+    respondSuccess(res, {
+      orderId,
+      merchantUPI: MERCHANT_UPI,
+      baseUPI,
+      gpayURL,
+      phonepeURL,
+      paytmURL,
+      note,
+    });
+  } catch (error) {
+    console.error("Generate UPI Error:", error);
+    respondError(res, 500, "Failed to generate payment links");
+  }
+});
+
+// PATCH /api/payment/confirm/:orderId
+app.patch("/api/payment/confirm/:orderId", async (req, res) => {
+  try {
+    const { orderId } = req.params;
+
+    const result = await db.collection("payment_orders").findOneAndUpdate(
+      { orderId },
+      { $set: { status: "paid", paidAt: new Date() } },
+      { returnDocument: "after" }
+    );
+
+    if (!result.value) {
+      return respondError(res, 404, "Payment order not found");
+    }
+
+    respondSuccess(res, result.value, "Payment confirmed successfully");
+  } catch (error) {
+    console.error("Confirm Payment Error:", error);
+    respondError(res, 500, "Failed to confirm payment");
+  }
+});
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // HEALTH CHECK
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 

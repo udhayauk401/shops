@@ -84,8 +84,8 @@
             </div>
           </div>
 
-          <button type="submit" class="submit-btn" style="width: 100%; margin-top: 2rem;">Place Order</button>
-          <a href="cart.html" class="btn btn-outline" style="width: 100%; text-align: center; margin-top: 0.5rem;">Back to Cart</a>
+          <a href="cart.html" class="btn btn-back" style="width: 100%; text-align: center; margin-bottom: 0.75rem;">← Back to Cart</a>
+          <button type="submit" class="submit-btn" style="width: 100%;">Place Order</button>
         </form>
       </div>
 
@@ -111,6 +111,35 @@
 
     // Initialize page
     document.addEventListener("DOMContentLoaded", initOrderPage);
+  </script>
+  <!-- Sticky action bar so Place Order is always visible -->
+  <div class="order-action-bar" id="order-action-bar" style="display:none;">
+    <a href="cart.html" class="btn btn-back" id="bar-back">← Back to Cart</a>
+    <button class="btn btn-primary" id="bar-place-order">Place Order</button>
+  </div>
+
+  <script>
+    // Wire sticky action bar buttons to form actions
+    document.addEventListener('DOMContentLoaded', () => {
+      const actionBar = document.getElementById('order-action-bar');
+      const orderForm = document.getElementById('order-form');
+      const placeBtn = document.getElementById('bar-place-order');
+      const backLink = document.getElementById('bar-back');
+
+      if (!orderForm || !actionBar) return;
+
+      // Show action bar when form is present
+      actionBar.style.display = 'flex';
+
+      placeBtn.addEventListener('click', () => {
+        // trigger the form submit button so event handlers run
+        const submitBtn = orderForm.querySelector('button[type="submit"]');
+        if (submitBtn) submitBtn.click();
+        else orderForm.submit();
+      });
+
+      // backLink is a normal anchor; no extra wiring required
+    });
   </script>
 </body>
 </html>

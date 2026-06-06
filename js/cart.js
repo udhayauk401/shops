@@ -87,6 +87,8 @@ function updateQuantity(productId, size, quantity) {
     } else {
       item.quantity = quantity;
       saveCart(cart);
+      // refresh cart UI and summary so quantities/prices update immediately
+      renderCartItems();
       updateOrderSummary();
     }
   }
@@ -154,7 +156,7 @@ function renderCartItems() {
           </div>
           <div class="cart-item-quantity">
             <button class="qty-btn" onclick="updateQuantity('${item.productId}', '${item.size}', ${item.quantity - 1})">−</button>
-            <input type="number" class="qty-input" value="${item.quantity}" onchange="updateQuantity('${item.productId}', '${item.size}', this.value)" readonly>
+            <input type="number" class="qty-input" value="${item.quantity}" onchange="updateQuantity('${item.productId}', '${item.size}', this.value)">
             <button class="qty-btn" onclick="updateQuantity('${item.productId}', '${item.size}', ${item.quantity + 1})">+</button>
           </div>
           <div class="cart-item-price">₹${(item.price * item.quantity).toFixed(2)}</div>
@@ -202,7 +204,9 @@ function updateOrderSummary() {
       <button class="checkout-btn" onclick="proceedToOrder()" ${cart.length === 0 ? "disabled" : ""}>
         Proceed to Order
       </button>
-      <a href="dashboard.html" class="continue-shopping-btn">Continue Shopping</a>
+      <div style="margin-top:0.75rem; text-align:center;">
+        <a href="dashboard.html" class="continue-shopping-btn" style="display:inline-block; width:100%;">Continue Shopping</a>
+      </div>
     </div>
   `;
 }
