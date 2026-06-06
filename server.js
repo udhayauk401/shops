@@ -23,7 +23,6 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(__dirname));
 
 // ──────────────────────────────────────────────────
 // MONGOOSE CONNECTION
@@ -95,6 +94,9 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
+
+// Serve static files (after all specific routes to avoid conflicts with favicon/robots/sitemap)
+app.use(express.static(__dirname));
 
 // ──────────────────────────────────────────────────
 // ERROR HANDLER
