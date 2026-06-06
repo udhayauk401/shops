@@ -3,9 +3,11 @@
 // Example:
 // window.API_BASE = "https://your-backend-domain.com/api";
 
-const LOCAL_BACKEND = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
-  && window.location.port !== "3000"
-  ? "http://localhost:3000/api"
-  : "/api";
+const LOCAL_BACKEND = "http://localhost:3000/api";
+const PRODUCTION_BACKEND = "https://dresslux-api.onrender.com/api"; // replace with your real backend URL when deployed
 
-window.API_BASE = window.API_BASE || LOCAL_BACKEND;
+window.API_BASE = window.API_BASE || (
+  window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+    ? LOCAL_BACKEND
+    : PRODUCTION_BACKEND
+);
