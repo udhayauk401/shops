@@ -6,6 +6,13 @@
  * Open UPI payment modal
  */
 function openPaymentModal(product) {
+  // Check authentication
+  if (!getCurrentUser()) {
+    showErrorToast("Please log in to purchase");
+    window.location.href = "login.html";
+    return;
+  }
+
   if (!product || !product.name || !product.price) {
     showErrorToast("Product details missing");
     return;
@@ -18,14 +25,20 @@ function openPaymentModal(product) {
   // Reset form
   document.getElementById("payment-customer-name").value = "";
   document.getElementById("payment-error").textContent = "";
-  document.getElementById("payment-modal-step").textContent = "form";
 
   // Store product for later use
   window.currentPaymentProduct = product;
 
   // Update header with product info
-  document.querySelector(".payment-modal-product-name").textContent = product.name;
-  document.querySelector(".payment-modal-amount").textContent = `₹${Number(product.price).toLocaleString("en-IN")}`;
+  const nameEl = document.querySelector(".payment-modal-product-name");
+  const priceEl = document.querySelector(".payment-modal-amount");
+  
+  if (nameEl) nameEl.textContent = product.name;
+  if (priceEl) priceEl.textContent = `₹${Number(product.price).toLocaleString("en-IN")}`;
+
+  // Show form step
+  showPaymentStep("form");
+}
 }
 
 /**
