@@ -3,7 +3,8 @@
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
 // Backend Server Base URL
-const API_BASE = "/api";
+// Set `window.API_BASE` in hosted environments when backend is on a different origin.
+const API_BASE = window.API_BASE || "/api";
 const IS_BACKEND_API = true;
 
 /**
@@ -21,14 +22,25 @@ async function apiCall(endpoint, method = "GET", body = null) {
     }
 
     const response = await fetch(`${API_BASE}${endpoint}`, options);
-    const data = await response.json();
+    const text = await response.text();
 
-    if (!data.success && response.status !== 200) {
-      console.error(`API Error [${method} ${endpoint}]:`, data.error);
-      throw new Error(data.error || `API error: ${response.status}`);
+    let data = null;
+    try {
+      data = text ? JSON.parse(text) : null;
+    } catch (parseError) {
+      if (!response.ok) {
+        throw new Error(`API request failed with status ${response.status} and returned non-JSON response.`);
+      }
+      throw new Error(`Invalid JSON response from API: ${parseError.message}`);
     }
 
-    return data.data || data;
+    if (!response.ok) {
+      const errorMessage = data?.error || data?.message || `API error: ${response.status}`;
+      console.error(`API Error [${method} ${endpoint}]:`, errorMessage, data);
+      throw new Error(errorMessage);
+    }
+
+    return data?.data ?? data;
   } catch (error) {
     console.error("API Error:", error);
     throw error;
