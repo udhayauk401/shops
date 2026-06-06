@@ -21,7 +21,11 @@ async function apiCall(endpoint, method = "GET", body = null) {
       options.body = JSON.stringify(body);
     }
 
-    const response = await fetch(`${API_BASE}${endpoint}`, options);
+    const requestUrl = API_BASE.startsWith("http")
+      ? `${API_BASE}${endpoint}`
+      : `${window.location.origin}${API_BASE}${endpoint}`;
+
+    const response = await fetch(requestUrl, options);
     const text = await response.text();
 
     let data = null;
@@ -36,8 +40,17 @@ async function apiCall(endpoint, method = "GET", body = null) {
 
     if (!response.ok) {
       const errorMessage = data?.error || data?.message || `API error: ${response.status}`;
-      console.error(`API Error [${method} ${endpoint}]:`, errorMessage, data);
-      throw new Error(errorMessage);
+      console.error(`API Error [${method} ${endpoint}]`, {
+        url: requestUrl,
+        status: response.status,
+        responseBody: data,
+      });
+
+      const suggestion = API_BASE === "/api" && !window.location.hostname.startsWith("localhost")
+        ? " If this is the deployed frontend, set window.API_BASE to your backend origin in js/config.js."
+        : "";
+
+      throw new Error(`${errorMessage}${suggestion}`);
     }
 
     return data?.data ?? data;
