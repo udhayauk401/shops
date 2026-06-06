@@ -9,7 +9,6 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
-const { ObjectId } = require('mongodb');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -29,12 +28,18 @@ app.use(express.static(__dirname));
 // ──────────────────────────────────────────────────
 // MONGOOSE CONNECTION
 // ──────────────────────────────────────────────────
-mongoose.connect(process.env.MONGO_URI || process.env.MONGODB_URI)
-.then(() => console.log('✅ MongoDB Atlas connected successfully'))
-.catch(err => {
-  console.error('❌ MongoDB connection failed:', err.message);
-  process.exit(1);
-});
+const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI;
+
+if (!mongoUri) {
+  console.warn('⚠️ MONGO_URI / MONGODB_URI not configured. Database connection will not be established.');
+} else {
+  mongoose.connect(mongoUri)
+    .then(() => console.log('✅ MongoDB Atlas connected successfully'))
+    .catch(err => {
+      console.error('❌ MongoDB connection failed:', err.message);
+      // Do not exit in serverless environments; allow the platform to show a response if possible.
+    });
+}
 
 // ──────────────────────────────────────────────────
 // HELPER FUNCTIONS
@@ -106,10 +111,12 @@ app.use((err, req, res, next) => {
 // ──────────────────────────────────────────────────
 // START SERVER
 // ──────────────────────────────────────────────────
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-  console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+    console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
+  });
+}
 
 // ──────────────────────────────────────────────────
 // Graceful Shutdown
