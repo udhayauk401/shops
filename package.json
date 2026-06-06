@@ -6,7 +6,10 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "init-db": "node init-db.js"
+    "init-db": "node init-db.js",
+    "build-frontend": "cd react-frontend && npm install && npm run build",
+    "build": "npm run build-frontend",
+    "postinstall": "cd react-frontend && npm install || true"
   },
   "keywords": [
     "ecommerce",

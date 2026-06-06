@@ -216,61 +216,6 @@
   cursor: not-allowed;
 }
 
-.product-actions {
-  display: flex;
-  gap: 10px;
-}
-
-.product-actions .add-to-cart-btn,
-.product-actions .buy-now-btn {
-  flex: 1;
-  padding: 10px;
-  font-weight: 600;
-  border: none;
-  border-radius: var(--radius);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 0.9rem;
-}
-
-.add-to-cart-btn {
-  width: 100%;
-  padding: 10px;
-  background-color: var(--primary);
-  color: var(--white);
-  border: none;
-  border-radius: var(--radius);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.product-actions .add-to-cart-btn {
-  width: auto;
-  background-color: var(--white);
-  color: var(--primary);
-  border: 2px solid var(--primary);
-}
-
-.product-actions .add-to-cart-btn:hover {
-  background-color: var(--blush);
-  transform: translateY(-2px);
-}
-
-.buy-now-btn {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-  color: var(--white);
-}
-
-.buy-now-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(153, 53, 86, 0.3);
-}
-
-.product-actions .buy-now-btn {
-  width: auto;
-}
-
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 /* EMPTY STATE */
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */

@@ -204,9 +204,7 @@ function updateOrderSummary() {
       <button class="checkout-btn" onclick="proceedToOrder()" ${cart.length === 0 ? "disabled" : ""}>
         Proceed to Order
       </button>
-      <div style="margin-top:0.75rem; text-align:center;">
-        <a href="dashboard.html" class="continue-shopping-btn" style="display:inline-block; width:100%;">Continue Shopping</a>
-      </div>
+      <a href="dashboard.html" class="continue-shopping-btn">Continue Shopping</a>
     </div>
   `;
 }

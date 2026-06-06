@@ -102,44 +102,14 @@ function renderProducts() {
         <h3 class="product-name">${product.name}</h3>
         <p class="product-description">${(product.description || "").substring(0, 60)}...</p>
         <div class="product-price">₹${product.price.toFixed(2)}</div>
-        <div class="product-actions">
-          <button class="add-to-cart-btn" onclick="addToCartQuick(event, '${product._id}', '${product.name}', ${product.price}, '${product.imageUrl}')">
-            Add to Cart
-          </button>
-          <button class="buy-now-btn" data-product-id="${product._id}" data-product-name="${product.name}" data-product-price="${product.price}" data-product-image="${product.imageUrl}">
-            Buy Now
-          </button>
-        </div>
+        <button class="add-to-cart-btn" onclick="addToCartQuick(event, '${product._id}', '${product.name}', ${product.price}, '${product.imageUrl}')">
+          Add to Cart
+        </button>
       </div>
     </div>
   `
     )
     .join("");
-
-  // Attach Buy Now button event listeners
-  setupBuyNowListeners();
-}
-
-/**
- * Setup Buy Now button event listeners
- */
-function setupBuyNowListeners() {
-  const buyNowButtons = document.querySelectorAll(".buy-now-btn");
-  buyNowButtons.forEach((btn) => {
-    btn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      e.preventDefault();
-
-      const product = {
-        _id: btn.dataset.productId,
-        name: btn.dataset.productName,
-        price: parseFloat(btn.dataset.productPrice),
-        imageUrl: btn.dataset.productImage,
-      };
-
-      openPaymentModal(product);
-    });
-  });
 }
 
 /**
