@@ -12,16 +12,16 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
+app.options('*', cors());
 app.use(cors({
   origin: [
     'https://zingy-torrone-19bfd4.netlify.app',
-    'http://localhost:3000'  // keep for local dev
+    'http://localhost:3000'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true  // only if you use cookies/auth headers
+  credentials: true
 }));
-app.options('*', cors());
 app.use(express.json());
 
 // Serve static files (CSS, JS, images, etc.)
