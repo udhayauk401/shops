@@ -3,7 +3,7 @@
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
 // Backend Server Base URL
-const API_BASE = "http://localhost:3000/api";
+const API_BASE = "/api";
 const IS_BACKEND_API = true;
 
 /**

@@ -2,6 +2,19 @@
 /* ADMIN DASHBOARD & MANAGEMENT */
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
+function createAdminSvgPlaceholder(label, width = 200, height = 200) {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}">` +
+    `<rect width="${width}" height="${height}" fill="#f4f4f4"/>` +
+    `<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="14" fill="#777">${label}</text>` +
+    `</svg>`;
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
+const adminPlaceholderImages = {
+  small: createAdminSvgPlaceholder('No Image', 80, 80),
+  previewError: createAdminSvgPlaceholder('Image Error', 200, 200),
+};
+
 /**
  * Get admin statistics
  */
@@ -402,7 +415,7 @@ async function populateEditProductForm(productId) {
 
     const preview = document.getElementById("image-preview");
     if (preview && product.imageUrl) {
-      preview.innerHTML = `<img src="${product.imageUrl}" alt="Product preview" onerror="this.src='https://via.placeholder.com/200'">`;
+      preview.innerHTML = `<img src="${product.imageUrl}" alt="Product preview" onerror="this.src='${adminPlaceholderImages.previewError}'">`;
       preview.classList.add("show");
     }
 
@@ -465,7 +478,7 @@ async function renderAdminProducts() {
             .map(
               (product) => `
             <tr>
-              <td><img src="${product.imageUrl || 'https://via.placeholder.com/80'}" alt="${product.name}" style="width:80px; height:80px; object-fit:cover; border-radius:8px;"></td>
+              <td><img src="${product.imageUrl || adminPlaceholderImages.small}" alt="${product.name}" style="width:80px; height:80px; object-fit:cover; border-radius:8px;"></td>
               <td>${product.name}</td>
               <td>${product.category || 'N/A'}</td>
               <td>₹${Number(product.price).toFixed(2)}</td>
@@ -530,7 +543,7 @@ function initAddProductPage() {
         const preview = document.getElementById("image-preview");
         const url = e.target.value;
         if (url) {
-          preview.innerHTML = `<img src="${url}" alt="Product preview" onerror="this.src='https://via.placeholder.com/200'">`;
+          preview.innerHTML = `<img src="${url}" alt="Product preview" onerror="this.src='${adminPlaceholderImages.previewError}'">`;
           preview.classList.add("show");
         } else {
           preview.classList.remove("show");

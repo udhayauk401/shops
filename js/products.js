@@ -2,6 +2,22 @@
 /* PRODUCT MANAGEMENT & DISPLAY */
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
+function createSvgPlaceholder(label, width = 300, height = 350) {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}">` +
+    `<rect width="${width}" height="${height}" fill="#f4f4f4"/>` +
+    `<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="18" fill="#777">${label}</text>` +
+    `</svg>`;
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
+const placeholderImages = {
+  largeNoImage: createSvgPlaceholder('No Image', 300, 350),
+  largeError: createSvgPlaceholder('Image Error', 300, 350),
+  extraLargeNoImage: createSvgPlaceholder('No Image', 500, 600),
+  extraLargeError: createSvgPlaceholder('Image Error', 500, 600),
+  smallNoImage: createSvgPlaceholder('No Image', 200, 250),
+};
+
 let allProducts = [];
 let filteredProducts = [];
 let currentCategory = 'All';
@@ -95,7 +111,7 @@ function renderProducts() {
       (product) => `
     <div class="product-card" onclick="goToProduct('${product._id}')">
       <div class="product-image">
-        <img src="${product.imageUrl || 'https://via.placeholder.com/300x350?text=No+Image'}" alt="${product.name}" onerror="this.src='https://via.placeholder.com/300x350?text=Image+Error'">
+        <img src="${product.imageUrl || placeholderImages.largeNoImage}" alt="${product.name}" onerror="this.src='${placeholderImages.largeError}'">
         ${product.isNew ? '<span class="badge badge-primary">NEW</span>' : ''}
       </div>
       <div class="product-info">
@@ -139,9 +155,9 @@ async function displayProductDetail(productId) {
 
   if (mainImageContainer) {
     mainImageContainer.innerHTML = `
-      <img src="${product.imageUrl || 'https://via.placeholder.com/500x600?text=No+Image'}" 
+      <img src="${product.imageUrl || placeholderImages.extraLargeNoImage}" 
            alt="${product.name}"
-           onerror="this.src='https://via.placeholder.com/500x600?text=Image+Error'">
+           onerror="this.src='${placeholderImages.extraLargeError}'">
     `;
   }
 
@@ -198,7 +214,7 @@ async function displayProductDetail(productId) {
           (p) => `
         <div class="product-card" onclick="goToProduct('${p._id}')">
           <div class="product-image">
-            <img src="${p.imageUrl || 'https://via.placeholder.com/200x250?text=No+Image'}" alt="${p.name}">
+            <img src="${p.imageUrl || placeholderImages.smallNoImage}" alt="${p.name}">
           </div>
           <div class="product-info">
             <h3 class="product-name">${p.name}</h3>
