@@ -39,7 +39,7 @@ function openPaymentModal(product) {
   // Show form step
   showPaymentStep("form");
 }
-}
+
 
 /**
  * Close payment modal
