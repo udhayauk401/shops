@@ -6,7 +6,7 @@
 // };
 
 const CONFIG = {
-  API_URL: 'https://dresslux-api-xxxx.onrender.com'  // ← paste real URL here
+  API_URL: 'https://dresslux-api.onrender.com'  // ← your real URL
 };
 window.CONFIG = CONFIG;
 
