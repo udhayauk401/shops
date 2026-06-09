@@ -178,7 +178,7 @@ function updateOrderSummary() {
   const cart = getCart();
   const subtotal = getCartTotal();
   const shipping = subtotal > 1000 ? 0 : 150;
-  const tax = subtotal * 0.18;
+  const tax = subtotal * 0.0;
   const total = subtotal + shipping + tax;
 
   const summaryContainer = document.getElementById("order-summary-container");
@@ -196,7 +196,7 @@ function updateOrderSummary() {
         <span>${shipping === 0 ? "FREE" : `₹${shipping.toFixed(2)}`}</span>
       </div>
       <div class="summary-row">
-        <span>Tax (18%)</span>
+        <span>Tax (0%)</span>
         <span>₹${tax.toFixed(2)}</span>
       </div>
       <div class="summary-row total">
