@@ -177,7 +177,7 @@ function renderCartItems() {
 function updateOrderSummary() {
   const cart = getCart();
   const subtotal = getCartTotal();
-  const shipping = subtotal > 1000 ? 0 : 150;
+  const shipping = 0;
   const tax = subtotal * 0.0;
   const total = subtotal + shipping + tax;
 
